@@ -42,7 +42,8 @@ const URLModel = mongoose.model('URL', URLSchema)
 
 function catchInvalidURL (req, res, next) {
   const suspect = req.body.url
-  if (validUrl.isUri(suspect)) {
+  regex = new RegExp("^(http[s]?:\\/\\/(www\\.)?|ftp:\\/\\/(www\\.)?|www\\.){1}([0-9A-Za-z-\\.@:%_\+~#=]+)+((\\.[a-zA-Z]{2,3})+)(/(.)*)?(\\?(.)*)?");
+  if (regex.test(suspect)) {
   return next()
   }
   res.send({ error: 'invalid url' })
