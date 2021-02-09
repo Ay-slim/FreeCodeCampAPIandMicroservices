@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const bodyParser = require('body-parser')
-const validUrl = require('valid-url')
 const mongoose = require('mongoose')
 const { pick } = require('lodash')
 // Basic Configuration
