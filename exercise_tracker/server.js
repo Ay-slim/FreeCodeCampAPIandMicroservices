@@ -22,6 +22,7 @@ const userExerciseSchema = new Schema({username: {type: String, required: true},
 const UserExerciseModel = mongoose.model('User', userExerciseSchema)
 
 async function createUser(req, res) {
+  console.log('createUser packet', req.body)
   const newUserName = req.body.username
   const newEntry = {username: newUserName}
   const responseObject = await UserExerciseModel.create(newEntry)
@@ -29,14 +30,16 @@ async function createUser(req, res) {
 }
 
 async function addExercise(req, res) {
+  console.log('add exercise packet', req.body)
   const incomingData = req.body
-  if(incomingData.date === '') {
-    incomingData['date'] = Date.now()
+  if(!incomingData.hasOwnProperty('date')) {
+    incomingData['date'] = new Date(Date.now()).toDateString()
   }
+  incomingData['date'] = new Date(incomingData.date).toDateString()
   const userDocument = await UserExerciseModel.findOne({_id: incomingData.userId})
   userDocument.exercise.push(pick(incomingData, ['description', 'duration', 'date']))
-  await UserExerciseModel.findOneAndUpdate({_id: incomingData.userId}, {exercise: userDocument.exercise})
-  res.json(pick(incomingData, ['userId', 'description', 'duration', 'date']))
+  const response = await UserExerciseModel.findOneAndUpdate({_id: incomingData.userId}, {exercise: userDocument.exercise})
+  res.json({username: response.username, _id: response._id, description: incomingData.description, duration: incomingData.duration, date: incomingData.date})
 }
 
 
@@ -47,19 +50,19 @@ async function getUsers(req, res) {
 }
 
 async function getExerciseLogs(req, res) {
-  if(req.query.from && req.query.to && req.query.limit) {
-    const userDocument = await UserExerciseModel.findOne({_id: req.query.userId}).exec()
+  console.log('getexercise packet', req.query)
+  const userDocument = await UserExerciseModel.findOne({_id: req.query.userId}).exec()
+  let exerciseArray = userDocument.exercise
+  if(req.query.from && req.query.to) {
     const fromDate = new Date(String(req.query.from))
     const toDate = new Date(String(req.query.to))
-    const exerciseArray = userDocument.exercise.filter((object)=>(object.date>=fromDate && object.date<=toDate))
-    const arrayLength = exerciseArray.length
-    const arrayToReturn = exerciseArray.slice(arrayLength-req.query.limit, arrayLength)
-    res.json({log: arrayToReturn, count: arrayToReturn.length})
+    exerciseArray = exerciseArray.filter((object)=>(object.date>=fromDate && object.date<=toDate))
   }
-  console.log(req.query)
-  const userDocument = await UserExerciseModel.findOne({_id: req.query.userId}).exec()
+  if(req.query.limit){
+    const arrayLength = exerciseArray.length
+    exerciseArray = exerciseArray.slice(arrayLength-req.query.limit, arrayLength)
+  }
   console.log(userDocument)
-  const exerciseArray = userDocument.exercise
   const exerciseCount = exerciseArray.length
   res.json({log: exerciseArray, count: exerciseCount})
 }
