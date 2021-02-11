@@ -39,7 +39,8 @@ async function addExercise(req, res) {
   const userDocument = await UserExerciseModel.findOne({_id: incomingData.userId})
   userDocument.exercise.push(pick(incomingData, ['description', 'duration', 'date']))
   const response = await UserExerciseModel.findOneAndUpdate({_id: incomingData.userId}, {exercise: userDocument.exercise})
-  res.json({username: response.username, _id: response._id, description: incomingData.description, duration: incomingData.duration, date: incomingData.date})
+  console.log('addExerciseResponse', {username: response.username, _id: incomingData.userId, description: incomingData.description, duration: incomingData.duration, date: incomingData.date})
+  res.json({username: response.username, _id: incomingData.userId, description: incomingData.description, duration: Number(incomingData.duration), date: incomingData.date})
 }
 
 
